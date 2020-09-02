@@ -1,25 +1,26 @@
+/* eslint-disable react/self-closing-comp */
+/* eslint-disable prettier/prettier */
 import * as React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import CompatAlert from 'react-native-compat-alert';
+import { StyleSheet, View, Button } from 'react-native';
+import Alert from 'react-native-compat-alert';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
-  React.useEffect(() => {
-    CompatAlert.multiply(3, 7).then(setResult);
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      <Text>Result: {result}</Text>
-    </View>
-  );
+	return (
+		<View style={styles.container}>
+			<Button
+				title="Alert"
+				onPress={() => {
+					Alert.alert('test', 'message');
+				}}
+			></Button>
+		</View>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+	container: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
 });

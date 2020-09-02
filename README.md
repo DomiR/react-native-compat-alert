@@ -1,6 +1,6 @@
 # react-native-compat-alert
 
-Alert but compat AlertDialog component for older phones
+Same as react-native Alert but uses androidx.appcompat.app.AlertDialog for older android phones.
 
 ## Installation
 
@@ -11,11 +11,9 @@ npm install react-native-compat-alert
 ## Usage
 
 ```js
-import CompatAlert from "react-native-compat-alert";
+import Alert from 'react-native-compat-alert';
 
-// ...
-
-const result = await CompatAlert.multiply(3, 7);
+// see here for api: https://reactnative.dev/docs/alert#docsNav
 ```
 
 ## Contributing

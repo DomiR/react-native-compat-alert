@@ -1,9 +1,84 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prettier/prettier */
 import { NativeModules } from 'react-native';
+import { Platform, Alert as NativeAlert, AlertButton as NativeAlertButton } from 'react-native';
+const { CompatAlertDialogManagerAndroid } = NativeModules;
 
-type CompatAlertType = {
-  multiply(a: number, b: number): Promise<number>;
+export type DialogOptions = {
+	title?: string;
+	message?: string;
+	buttonPositive?: string;
+	buttonNegative?: string;
+	buttonNeutral?: string;
+	items?: Array<string>;
+	cancelable?: boolean;
 };
 
-const { CompatAlert } = NativeModules;
+export type AlertType = 'default' | 'plain-text' | 'secure-text' | 'login-password';
+export type AlertButtonStyle = 'default' | 'cancel' | 'destructive';
+export type Button = NativeAlertButton;
+export type Buttons = Button[];
 
-export default CompatAlert as CompatAlertType;
+type Options = {
+	cancelable?: boolean;
+	onDismiss?: () => void;
+};
+
+// console.log('CompatAlertDialogManagerAndroid', CompatAlertDialogManagerAndroid);
+class Alert {
+	static alert(title: string, message?: string, buttons?: Buttons, options?: Options): void {
+		if (Platform.OS === 'ios') {
+			NativeAlert.alert(title, message, buttons, options);
+		} else if (Platform.OS === 'android') {
+			if (!CompatAlertDialogManagerAndroid) {
+				return;
+			}
+			const constants = CompatAlertDialogManagerAndroid.getConstants();
+
+			const config: DialogOptions = {
+				title: title || '',
+				message: message || '',
+				cancelable: false,
+			};
+
+			if (options && options.cancelable) {
+				config.cancelable = options.cancelable;
+			}
+			// At most three buttons (neutral, negative, positive). Ignore rest.
+			// The text 'OK' should be probably localized. iOS Alert does that in native.
+			const defaultPositiveText = 'OK';
+			const validButtons: Buttons = buttons ? buttons.slice(0, 3) : [{ text: defaultPositiveText }];
+			const buttonPositive = validButtons.pop();
+			const buttonNegative = validButtons.pop();
+			const buttonNeutral = validButtons.pop();
+
+			if (buttonNeutral) {
+				config.buttonNeutral = buttonNeutral.text || '';
+			}
+			if (buttonNegative) {
+				config.buttonNegative = buttonNegative.text || '';
+			}
+			if (buttonPositive) {
+				config.buttonPositive = buttonPositive.text || defaultPositiveText;
+			}
+
+			const onAction = (action: any, buttonKey: any) => {
+				if (action === constants.buttonClicked) {
+					if (buttonKey === constants.buttonNeutral) {
+						buttonNeutral!.onPress && buttonNeutral!.onPress();
+					} else if (buttonKey === constants.buttonNegative) {
+						buttonNegative!.onPress && buttonNegative!.onPress();
+					} else if (buttonKey === constants.buttonPositive) {
+						buttonPositive!.onPress && buttonPositive!.onPress();
+					}
+				} else if (action === constants.dismissed) {
+					options && options.onDismiss && options.onDismiss();
+				}
+			};
+			const onError = (errorMessage: any) => console.warn(errorMessage);
+			CompatAlertDialogManagerAndroid.showAlert(config, onError, onAction);
+		}
+	}
+}
+
+export default Alert;
